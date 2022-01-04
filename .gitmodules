@@ -1,0 +1,4 @@
+[submodule "crc32c"]
+	path = crc32c
+	url = https://github.com/dyu/crc32c.git
+	branch = gn
