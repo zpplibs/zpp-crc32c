@@ -17,6 +17,7 @@ test "lib" {
     try std.testing.expect(0 != result);
     const extended = extend(result, "bar");
     try std.testing.expect(0 != extended);
+    try std.testing.expect(extended == value("foobar"));
 
     std.debug.print(
         "ok\n  - crc32c.value(foo): {}\n  - crc32c.extend(foo, bar): {}\n",
