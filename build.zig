@@ -9,6 +9,8 @@ const mode_names = blk: {
 };
 var mode_name_idx: usize = undefined;
 
+const c_flags = &[_][]const u8{ "-std=c99" };
+
 fn addTest(
     comptime root_src: []const u8,
     test_name: []const u8,
@@ -25,26 +27,28 @@ fn addTest(
     return t;
 }
 
-// fn addExecutable(
-//     comptime name: []const u8,
-//     root_src: []const u8,
-//     run_name: []const u8,
-//     run_description: []const u8,
-//     b: *std.build.Builder,
-// ) *std.build.LibExeObjStep {
-//     const exe = b.addExecutable(name, root_src);
+fn addExecutable(
+    comptime name: []const u8,
+    root_src: []const u8,
+    run_name: []const u8,
+    run_description: []const u8,
+    b: *std.build.Builder,
+) *std.build.LibExeObjStep {
+    const is_zig = std.mem.endsWith(u8, root_src, ".zig");
+    const exe = b.addExecutable(name, if (is_zig) root_src else null);
+    if (!is_zig) exe.addCSourceFile(root_src, c_flags);
     
-//     const run_cmd = exe.run();
-//     run_cmd.step.dependOn(b.getInstallStep());
-//     if (b.args) |args| run_cmd.addArgs(args);
+    const run_cmd = exe.run();
+    run_cmd.step.dependOn(b.getInstallStep());
+    if (b.args) |args| run_cmd.addArgs(args);
     
-//     b.step(
-//         if (run_name.len != 0) run_name else "run:" ++ name,
-//         if (run_description.len != 0) run_description else "Run " ++ name,
-//     ).dependOn(&run_cmd.step);
+    b.step(
+        if (run_name.len != 0) run_name else "run:" ++ name,
+        if (run_description.len != 0) run_description else "Run " ++ name,
+    ).dependOn(&run_cmd.step);
     
-//     return exe;
-// }
+    return exe;
+}
 
 pub fn build(b: *std.build.Builder) void {
     const target = b.standardTargetOptions(.{});
@@ -62,12 +66,28 @@ pub fn build(b: *std.build.Builder) void {
     for (tests) |t| test_all.dependOn(&t.step);
     
     // executables
-    // deps.addAllTo(
-    //     addExecutable(
-    //         "example", "src/example.zig",
-    //         "run", "Run the example",
-    //         b,
-    //     ),
-    //     b, target, mode,
-    // ).install();
+    deps.addAllTo(
+        addExecutable(
+            "crc32c-tests", "crc32c/src/crc32c_capi_unittest.c",
+            "crc32c-tests", "Run the crc32c tests",
+            b,
+        ),
+        b, target, mode,
+    ).install();
+    deps.addAllTo(
+        addExecutable(
+            "crc32c-example", "src/example.c",
+            "crc32c-example", "Run the crc32c example",
+            b,
+        ),
+        b, target, mode,
+    ).install();
+    deps.addAllTo(
+        addExecutable(
+            "example", "src/example.zig",
+            "run", "Run the example",
+            b,
+        ),
+        b, target, mode,
+    ).install();
 }
