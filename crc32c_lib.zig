@@ -29,19 +29,20 @@ pub fn configure(
         "-Werror",
         "-fno-exceptions",
         "-fno-rtti",
-        "-DNDEBUG",  
+        "-DNDEBUG",
+        "-DHAVE_ARM64_CRC32C=0", // TODO conditionally enable this when zig clang arm64 bug is fixed
     };
     lib.addCSourceFiles(&.{
         basedir ++ "/crc32c/src/crc32c_portable.cc",
         basedir ++ "/crc32c/src/crc32c.cc",
     }, flags);
-    switch (target.getCpuArch()) {
-        .aarch64 => lib.addCSourceFile(
-            basedir ++ "/crc32c/src/crc32c_arm64.cc",
-            flags,
-        ),
-        else => {},
-    }
+    // TODO restore this when zig clang arm64 bug is fixed
+    // if (
+    //     std.Target.Os.Tag.macos == target.getOsTag() and
+    //     std.Target.Cpu.Arch.aarch64 == target.getCpuArch()
+    // ) {
+    //     lib.addCSourceFile(basedir ++ "/crc32c/src/crc32c_arm64.cc", flags);
+    // }
     
     return lib;
 }
