@@ -1,5 +1,5 @@
 ## zpp-crc32c
-crc32c library for zig
+crc32c lib for zig
 
 ### Fetch deps
 ```sh
