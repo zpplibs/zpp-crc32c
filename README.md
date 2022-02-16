@@ -1,12 +1,43 @@
 ## zpp-crc32c
 crc32c library for zig
 
-### Building
+### Fetch deps
 ```sh
-zig build
+git submodule update --init
 ```
 
-### Running the tests
+### Build
 ```sh
-zig build test
+./build.sh
+```
+
+### Run
+```sh
+./build.sh run -- hello world
+./build.sh run-c -- hello world
+```
+
+### Run the tests
+```sh
+./test.sh
+```
+
+### Dist (cross-compilation)
+```sh
+./build.sh dist
+```
+
+### Release
+```sh
+./build.sh dist VERSION GITHUB_TOKEN
+```
+
+### Clean
+```sh
+./build.sh clean
+```
+
+### Tag
+```sh
+./build.sh tag v$VERSION
 ```

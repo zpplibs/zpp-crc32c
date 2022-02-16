@@ -9,14 +9,18 @@
 
 int main(int argc, char** argv) {
     if (argc == 1) {
-        printf("1st arg is required.\n");  
-        return 1;
+        fprintf(stderr, "1st arg(text) is required.\nThis will print the crc32c checksum of the args.\n");  
+        return 0;
     }
-    char* arg = argv[1];
-    size_t len = strlen(arg);
+    char* arg;
+    size_t len;
+    uint32_t result = 0;
+    for (int i = 1; i < argc; i++) {
+        arg = argv[i];
+        len = strlen(arg);
+        result = crc32c_extend(result, (const uint8_t*)arg, len);
+    }
     
-    const uint32_t result = crc32c_value((const uint8_t*)arg, len);
-    
-    printf("%" PRIu32 "\n", result);
+    fprintf(stderr, "%" PRIu32 "\n", result);
     return 0;
 }

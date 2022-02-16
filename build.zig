@@ -8,6 +8,8 @@ const mode_names = blk: {
     break :blk names;
 };
 var mode_name_idx: usize = undefined;
+// comptime options
+var build_options: *std.build.OptionsStep = undefined;
 
 const c_flags = &[_][]const u8{ "-std=c99" };
 
@@ -36,7 +38,8 @@ fn addExecutable(
 ) *std.build.LibExeObjStep {
     const is_zig = std.mem.endsWith(u8, root_src, ".zig");
     const exe = b.addExecutable(name, if (is_zig) root_src else null);
-    if (!is_zig) exe.addCSourceFile(root_src, c_flags);
+    if (is_zig) exe.addOptions("build_options", build_options)
+    else exe.addCSourceFile(root_src, c_flags);
     
     const run_cmd = exe.run();
     run_cmd.step.dependOn(b.getInstallStep());
@@ -55,6 +58,15 @@ pub fn build(b: *std.build.Builder) void {
     const mode = b.standardReleaseOptions();
     mode_name_idx = @enumToInt(mode);
     
+    // options
+    const version: []const u8 = b.option(
+        []const u8, "version", "the app version",
+    ) orelse parseGitRevHead(b.allocator) catch "master";
+    
+    // will not be used/referenced after the surrounding function returns
+    build_options = b.addOptions();
+    build_options.addOption([]const u8, "version", version);
+    
     // tests
     const test_all = b.step("test", "Run all tests");
     const tests = &[_]*std.build.LibExeObjStep{
@@ -68,26 +80,36 @@ pub fn build(b: *std.build.Builder) void {
     // executables
     deps.addAllTo(
         addExecutable(
-            "crc32c-tests", "crc32c/src/crc32c_capi_unittest.c",
-            "crc32c-tests", "Run the crc32c tests",
+            "crc32c_capi_unittest", "crc32c/src/crc32c_capi_unittest.c",
+            "", "Run the crc32c c api unit tests",
             b,
         ),
         b, target, mode,
     ).install();
     deps.addAllTo(
         addExecutable(
-            "crc32c-example", "src/example.c",
-            "crc32c-example", "Run the crc32c example",
+            "zpp-crc32c-c", "src/example.c",
+            "run-c", "Run the crc32c c example",
             b,
         ),
         b, target, mode,
     ).install();
     deps.addAllTo(
         addExecutable(
-            "example", "src/example.zig",
-            "run", "Run the example",
+            "zpp-crc32c", "src/example.zig",
+            "run", "Run the crc32c example",
             b,
         ),
         b, target, mode,
     ).install();
+}
+
+/// Returns the output of `git rev-parse HEAD`
+pub fn parseGitRevHead(a: std.mem.Allocator) ![]const u8 {
+    const max = std.math.maxInt(usize);
+    const git_dir = try std.fs.cwd().openDir(".git", .{});
+    // content of `.git/HEAD` -> `ref: refs/heads/master`
+    const h = std.mem.trim(u8, try git_dir.readFileAlloc(a, "HEAD", max), "\n");
+    // content of `refs/heads/master`
+    return std.mem.trim(u8, try git_dir.readFileAlloc(a, h[5..], max), "\n");
 }
