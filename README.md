@@ -1,7 +1,5 @@
-## zpp-crc32c
-crc32c lib for zig
-
-Zig bindings for [crc32c](https://github.com/google/crc32c)
+# zpp-crc32c
+[crc32c](https://github.com/google/crc32c) lib for zig
 
 ### Usage
 ```zig
@@ -12,6 +10,8 @@ const hello_checksum = crc32c.value("hello");
 // extend
 const helloworld_checksum =  crc32c.extend(hello_checksum, "world");
 ```
+
+## Building
 
 ### Fetch deps
 ```sh
