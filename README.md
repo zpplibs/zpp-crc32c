@@ -1,6 +1,18 @@
 ## zpp-crc32c
 crc32c lib for zig
 
+Zig bindings for [crc32c](https://github.com/google/crc32c)
+
+### Usage
+```zig
+const crc32c = @import("zpp-crc32c");
+
+const hello_checksum = crc32c.value("hello");
+
+// extend
+const helloworld_checksum =  crc32c.extend(hello_checksum, "world");
+```
+
 ### Fetch deps
 ```sh
 git submodule update --init
