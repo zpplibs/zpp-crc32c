@@ -1,12 +1,17 @@
 .{
     .name = .zpp_crc32c,
     .version = "0.1.0",
-    .fingerprint = 0xb0881fd0668e57a4,
+    .fingerprint = 0xb0881fd010588398,
+    .dependencies = .{
+        .crc32c = .{
+            .url = "git+https://github.com/dyu/crc32c#919be13ce70772712630a0ad65386154a2e98af9",
+            .hash = "N-V-__8AAMuMAQCzhQjC7qLFlVh03Ol8xp5sO08IJk9NdY8G",
+        },
+    },
     .minimum_zig_version = "0.14.0",
     .paths = .{
         "build.zig",
         "build.zig.zon",
         "src",
-        "crc32c",
     },
 }

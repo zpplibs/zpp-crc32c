@@ -236,7 +236,12 @@ pub fn build(b: *std.Build) void {
     // ======================================================================
     // deps
 
-    const crc32c_path = b.path("crc32c");
+    // const crc32c_path = b.path("crc32c");
+    const dep_crc32c = b.dependency("crc32c", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const crc32c_path = dep_crc32c.path(".");
 
     // ======================================================================
     // cpp lib
