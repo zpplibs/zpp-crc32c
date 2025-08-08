@@ -2,7 +2,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 const build_options = @import("build_options");
 
-const crc32c = @import("zpp-crc32c");
+const crc32c = @import("zpp_crc32c");
 
 fn printVersion() void {
     std.debug.print("zpp-crc32c {s} {s} {s}", .{
