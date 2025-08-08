@@ -205,8 +205,9 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const arch = target.query.cpu_arch orelse builtin.target.cpu.arch;
-    // TODO crc32c impl has a bug on arm64 when on debug mode
-    const with_crc32c_arm64 = arch == .aarch64 and optimize != .Debug;
+    // crc32c impl had a bug on arm64 when on debug mode (but fixed in https://github.com/google/crc32c/pull/65)
+    // const with_crc32c_arm64 = arch == .aarch64 and optimize != .Debug;
+    const with_crc32c_arm64 = arch == .aarch64;
 
     const build_options = b.addOptions();
     build_options.addOption(
