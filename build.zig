@@ -127,9 +127,6 @@ fn addModuleTo(
                 } },
                 .flags = if (is_c) bm.c_flags else bm.cpp_flags,
             });
-            // exe.linkLibrary(lib);
-            // exe.addIncludePath(b.path("crc32c/include"));
-            // exe.addIncludePath(lib.getEmittedIncludeTree());
             if (is_c) {
                 exe.linkLibC();
             } else {
@@ -239,7 +236,7 @@ pub fn build(b: *std.Build) void {
     // ======================================================================
     // deps
 
-    // no zig.zon deps
+    const crc32c_path = b.path("crc32c");
 
     // ======================================================================
     // cpp lib
@@ -250,13 +247,13 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     const lib_export = "crc32c/crc32c.h";
-    const lib_header = b.path("crc32c/include/" ++ lib_export);
+    const lib_header = crc32c_path.path(b, "include/" ++ lib_export);
 
-    lib.addIncludePath(b.path("crc32c/include"));
-    lib.addIncludePath(b.path("crc32c/config-include"));
+    lib.addIncludePath(crc32c_path.path(b, "include"));
+    lib.addIncludePath(crc32c_path.path(b, "config-include"));
     lib.linkLibCpp();
     lib.addCSourceFiles(.{
-        .root = b.path("crc32c/src"),
+        .root = crc32c_path.path(b, "src"),
         .files = if (!with_crc32c_arm64) cpp_srcs else cpp_srcs_arm64,
         .flags = bm.cpp_flags,
     });
