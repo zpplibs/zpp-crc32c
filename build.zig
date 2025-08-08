@@ -20,6 +20,7 @@ const BuildModule = struct {
     c_flags: []const []const u8,
     cpp_flags: []const []const u8,
     test_filters: []const []const u8,
+    crc32c_path: std.Build.LazyPath,
 };
 
 const optimize_names = blk: {
@@ -29,6 +30,8 @@ const optimize_names = blk: {
     for (fields, 0..) |field, i| names[i] = field.name;
     break :blk names;
 };
+
+const crc32c_prefix = "crc32c/";
 
 const common_flags = &[_][]const u8{
     "-Wall",
@@ -121,7 +124,10 @@ fn addModuleTo(
         if (!is_zig) {
             const is_c = std.mem.endsWith(u8, root_src, ".c");
             exe.addCSourceFile(.{
-                .file = .{ .src_path = .{
+                .file = if (std.mem.startsWith(u8, root_src, crc32c_prefix)) bm.crc32c_path.path(
+                    b,
+                    root_src[crc32c_prefix.len..],
+                ) else .{ .src_path = .{
                     .owner = b,
                     .sub_path = root_src,
                 } },
@@ -216,6 +222,19 @@ pub fn build(b: *std.Build) void {
             "the app version",
         ) orelse parseGitRevHead(b.allocator) catch "master",
     );
+
+    // ======================================================================
+    // deps
+
+    // const crc32c_path = b.path("crc32c");
+    const dep_crc32c = b.dependency("crc32c", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const crc32c_path = dep_crc32c.path(".");
+
+    // ======================================================================
+
     const bm: BuildModule = .{
         .b = b,
         // .m = ModuleMap.init(b.allocator),
@@ -231,17 +250,8 @@ pub fn build(b: *std.Build) void {
             "test-filter",
             "test-filter",
         ) orelse &.{},
+        .crc32c_path = crc32c_path,
     };
-
-    // ======================================================================
-    // deps
-
-    // const crc32c_path = b.path("crc32c");
-    const dep_crc32c = b.dependency("crc32c", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    const crc32c_path = dep_crc32c.path(".");
 
     // ======================================================================
     // cpp lib
