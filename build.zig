@@ -202,8 +202,12 @@ pub fn addIncludePathsTo(
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
-    const arch = target.query.cpu_arch orelse builtin.target.cpu.arch;
     const optimize = b.standardOptimizeOption(.{});
+
+    const arch = target.query.cpu_arch orelse builtin.target.cpu.arch;
+    // TODO crc32c impl has a bug on arm64 when on debug mode
+    const with_crc32c_arm64 = arch == .aarch64 and optimize != .Debug;
+
     const build_options = b.addOptions();
     build_options.addOption(
         []const u8,
@@ -222,14 +226,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .optimize_idx = @intFromEnum(optimize),
         .build_options = build_options.createModule(),
-        .c_flags = switch (arch) {
-            .aarch64 => c_flags_arm64,
-            else => c_flags_def,
-        },
-        .cpp_flags = switch (arch) {
-            .aarch64 => cpp_flags_arm64,
-            else => cpp_flags_def,
-        },
+        .c_flags = if (!with_crc32c_arm64) c_flags_def else c_flags_arm64,
+        .cpp_flags = if (!with_crc32c_arm64) cpp_flags_def else cpp_flags_arm64,
         .test_filters = b.option(
             []const []const u8,
             "test-filter",
@@ -258,14 +256,8 @@ pub fn build(b: *std.Build) void {
     lib.linkLibCpp();
     lib.addCSourceFiles(.{
         .root = b.path("crc32c/src"),
-        .files = switch (arch) {
-            .aarch64 => cpp_srcs_arm64,
-            else => cpp_srcs,
-        },
-        .flags = switch (arch) {
-            .aarch64 => c_flags_arm64,
-            else => c_flags_def,
-        },
+        .files = if (!with_crc32c_arm64) cpp_srcs else cpp_srcs_arm64,
+        .flags = bm.cpp_flags,
     });
     // lib.addCSourceFiles(.{
     //     .root = b.path("src"),
