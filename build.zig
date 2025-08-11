@@ -280,11 +280,16 @@ pub fn build(b: *std.Build) void {
     //     .flags = c_flags,
     // });
 
+    // lib.installHeadersDirectory(
+    //     crc32c_path.path(b, "include/crc32c"),
+    //     "crc32c",
+    //     .{},
+    // );
     lib.installHeader(lib_header, lib_export);
-    b.default_step.dependOn(&b.addInstallHeaderFile(
-        lib_header,
-        lib_export,
-    ).step);
+    // b.default_step.dependOn(&b.addInstallHeaderFile(
+    //     lib_header,
+    //     lib_export,
+    // ).step);
     b.installArtifact(lib);
 
     // ======================================================================
