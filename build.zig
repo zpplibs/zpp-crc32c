@@ -227,6 +227,11 @@ pub fn build(b: *std.Build) void {
             "the app version",
         ) orelse parseGitRevHead(b.allocator) catch "master",
     );
+    build_options.addOption(
+        bool,
+        "generic",
+        generic,
+    );
 
     // ======================================================================
     // deps
