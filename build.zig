@@ -208,9 +208,14 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const arch = target.query.cpu_arch orelse builtin.target.cpu.arch;
+    const generic = b.option(
+        bool,
+        "generic",
+        "Whether to compile aarch64-specific code or not",
+    ) orelse false;
     // crc32c impl had a bug on arm64 when on debug mode (but fixed in https://github.com/google/crc32c/pull/65)
     // const with_crc32c_arm64 = arch == .aarch64 and optimize != .Debug;
-    const with_crc32c_arm64 = arch == .aarch64;
+    const with_crc32c_arm64 = !generic and arch == .aarch64;
 
     const build_options = b.addOptions();
     build_options.addOption(
