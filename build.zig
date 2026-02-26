@@ -108,6 +108,7 @@ fn addModuleTo(
         },
         .target = bm.target,
         .optimize = bm.optimize,
+        .link_libc = !is_zig,
     });
 
     if (is_zig) {
@@ -118,7 +119,6 @@ fn addModuleTo(
         const exe = b.addExecutable(.{
             .name = exe_name,
             .root_module = mod,
-            .link_libc = !is_zig,
         });
 
         if (!is_zig) {
@@ -267,29 +267,35 @@ pub fn build(b: *std.Build) void {
     // ======================================================================
     // cpp lib
 
-    const lib = b.addStaticLibrary(.{
-        .name = "zpp_crc32c",
+    const lib_mod = b.createModule(.{
         .target = target,
         .optimize = optimize,
+        .link_libcpp = true,
     });
-    const lib_export = "crc32c/crc32c.h";
-    const lib_header = crc32c_path.path(b, "include/" ++ lib_export);
 
-    lib.addIncludePath(crc32c_path.path(b, "include"));
-    lib.addIncludePath(crc32c_path.path(b, "config-include"));
-    lib.linkLibCpp();
-    lib.addCSourceFiles(.{
+    lib_mod.addIncludePath(crc32c_path.path(b, "include"));
+    lib_mod.addIncludePath(crc32c_path.path(b, "config-include"));
+    lib_mod.addCSourceFiles(.{
         .root = crc32c_path.path(b, "src"),
         .files = if (!with_crc32c_arm64) cpp_srcs else cpp_srcs_arm64,
         .flags = bm.cpp_flags,
     });
-    // lib.addCSourceFiles(.{
+    // lib_mod.addCSourceFiles(.{
     //     .root = b.path("src"),
     //     .files = &.{
     //         "lib.cpp",
     //     },
     //     .flags = c_flags,
     // });
+
+    const lib = b.addLibrary(.{
+        .name = "zpp",
+        .root_module = lib_mod,
+        .linkage = .static,
+    });
+
+    const lib_export = "crc32c/crc32c.h";
+    const lib_header = crc32c_path.path(b, "include/" ++ lib_export);
 
     // lib.installHeadersDirectory(
     //     crc32c_path.path(b, "include/crc32c"),
@@ -323,7 +329,12 @@ pub fn build(b: *std.Build) void {
     // tests
 
     const lib_test = b.addTest(.{
-        .root_source_file = b.path("src/lib.zig"),
+        // .root_source_file = b.path("src/lib.zig"),
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/lib.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
         .filters = bm.test_filters,
     });
     lib_test.root_module.linkLibrary(lib);
