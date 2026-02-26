@@ -294,7 +294,7 @@ pub fn build(b: *std.Build) void {
     // });
 
     const lib = b.addLibrary(.{
-        .name = "zpp",
+        .name = "zpp_crc32c",
         .root_module = lib_mod,
         .linkage = .static,
     });
