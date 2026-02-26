@@ -233,6 +233,11 @@ pub fn build(b: *std.Build) void {
         "generic",
         generic,
     );
+    const lib_only = b.option(
+        bool,
+        "lib_only",
+        "whether to configure lib only for the build",
+    ) orelse false;
 
     // ======================================================================
     // deps
@@ -324,6 +329,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     }).createModule());
+
+    if (lib_only) return;
 
     // ======================================================================
     // tests
